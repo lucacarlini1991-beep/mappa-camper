@@ -3,79 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Camper Service</title>
+    <title>Login Camper</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #f28123; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:hover { background: #e67616; }
-        #msg { margin-top: 15px; font-size: 0.9rem; color: #e74c3c; min-height: 20px; }
+        #status { margin-top: 15px; font-size: 0.8rem; color: #666; }
     </style>
 </head>
 <body>
-
     <div class="box">
-        <h2 style="color: #333;">Area Camper</h2>
-        <input type="email" id="email" placeholder="Email (es: lcarlini@me.com)">
+        <h2>Area Camper</h2>
+        <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
-        <button id="loginBtn">ACCEDI</button>
-        <div id="msg"></div>
+        <button onclick="handleLogin()">ACCEDI</button>
+        <div id="status">Pronto.</div>
     </div>
 
     <script>
-        // --- CONFIGURAZIONE SUPABASE ---
-        // Sostituisci con i dati che hai visto nella tua foto di Supabase
-        const SUPABASE_URL = 'https://mxxg...supabase.co'; // Incolla il tuo URL completo
-        const SUPABASE_KEY = 'sb_publishable...';         // Incolla la tua chiave anonima
+        // DATI DA INSERIRE ATTENTAMENTE
+        const SUPABASE_URL = 'INCOLLA_QUI_URL'; 
+        const SUPABASE_KEY = 'INCOLLA_QUI_KEY_ANON';
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Selezioniamo gli elementi
-        const emailInput = document.getElementById('email');
-        const passInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const msgDiv = document.getElementById('msg');
-
-        // Funzione di Login
         async function handleLogin() {
-            const email = emailInput.value.trim();
-            const password = passInput.value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const status = document.getElementById('status');
 
-            if (!email || !password) {
-                msgDiv.innerText = "Inserisci email e password.";
-                return;
-            }
-
-            msgDiv.style.color = "#333";
-            msgDiv.innerText = "Tentativo di accesso...";
+            status.innerText = "Connessione in corso...";
 
             try {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
-                    password: password,
+                    password: password
                 });
 
                 if (error) {
-                    msgDiv.style.color = "#e74c3c";
-                    msgDiv.innerText = "Errore: " + error.message;
+                    status.style.color = "red";
+                    status.innerText = "Errore: " + error.message;
                 } else {
-                    msgDiv.style.color = "green";
-                    msgDiv.innerText = "Accesso ok! Entro...";
-                    // Aspettiamo un secondo e andiamo alla mappa
-                    setTimeout(() => {
-                        window.location.href = "mappa.html";
-                    }, 800);
+                    status.style.color = "green";
+                    status.innerText = "Successo! Entro...";
+                    window.location.href = "mappa.html";
                 }
             } catch (err) {
-                msgDiv.innerText = "Errore di connessione.";
-                console.error(err);
+                status.innerText = "Errore tecnico: " + err.message;
             }
         }
-
-        // Colleghiamo la funzione al click del tasto
-        loginBtn.addEventListener('click', handleLogin);
     </script>
 </body>
 </html>
