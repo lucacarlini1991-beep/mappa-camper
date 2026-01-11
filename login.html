@@ -1,37 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Camper</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <title>Login - Camper Service</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #f28123; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:hover { background: #e67616; }
+        #msg { margin-top: 15px; font-size: 0.9rem; color: #e74c3c; min-height: 20px; }
+    </style>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding-top:50px;">
-    <h2>Accesso Mappa</h2>
-    <input type="email" id="email" placeholder="Email" style="padding:10px; margin:5px;"><br>
-    <input type="password" id="password" placeholder="Password" style="padding:10px; margin:5px;"><br>
-    <button onclick="login()" style="padding:10px 20px; background:#f28123; color:white; border:none; border-radius:5px;">ENTRA</button>
-    <p id="err" style="color:red;"></p>
+<body>
+
+    <div class="box">
+        <h2 style="color: #333;">Area Camper</h2>
+        <input type="email" id="email" placeholder="Email (es: lcarlini@me.com)">
+        <input type="password" id="password" placeholder="Password">
+        <button id="loginBtn">ACCEDI</button>
+        <div id="msg"></div>
+    </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
-            authDomain: "camperservicepoint.firebaseapp.com",
-            projectId: "camperservicepoint",
-            storageBucket: "camperservicepoint.firebasestorage.app",
-            messagingSenderId: "771457519428",
-            appId: "1:771457519428:web:29eb0b67403d01ecb8d111"
-        };
-        firebase.initializeApp(firebaseConfig);
+        // --- CONFIGURAZIONE SUPABASE ---
+        // Sostituisci con i dati che hai visto nella tua foto di Supabase
+        const SUPABASE_URL = 'https://mxxg...supabase.co'; // Incolla il tuo URL completo
+        const SUPABASE_KEY = 'sb_publishable...';         // Incolla la tua chiave anonima
 
-        function login() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then(() => { window.location.href = "mappa.html"; })
-                .catch((error) => { document.getElementById('err').innerText = error.message; });
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Selezioniamo gli elementi
+        const emailInput = document.getElementById('email');
+        const passInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const msgDiv = document.getElementById('msg');
+
+        // Funzione di Login
+        async function handleLogin() {
+            const email = emailInput.value.trim();
+            const password = passInput.value;
+
+            if (!email || !password) {
+                msgDiv.innerText = "Inserisci email e password.";
+                return;
+            }
+
+            msgDiv.style.color = "#333";
+            msgDiv.innerText = "Tentativo di accesso...";
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    msgDiv.style.color = "#e74c3c";
+                    msgDiv.innerText = "Errore: " + error.message;
+                } else {
+                    msgDiv.style.color = "green";
+                    msgDiv.innerText = "Accesso ok! Entro...";
+                    // Aspettiamo un secondo e andiamo alla mappa
+                    setTimeout(() => {
+                        window.location.href = "mappa.html";
+                    }, 800);
+                }
+            } catch (err) {
+                msgDiv.innerText = "Errore di connessione.";
+                console.error(err);
+            }
         }
+
+        // Colleghiamo la funzione al click del tasto
+        loginBtn.addEventListener('click', handleLogin);
     </script>
 </body>
 </html>
