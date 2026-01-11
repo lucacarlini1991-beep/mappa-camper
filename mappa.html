@@ -3,110 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mappa Camper Service</title>
+    <title>Mappa Camper - Supabase</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
         body { margin: 0; padding: 0; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; }
-        .ui-controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .ui-btn { 
+            position: fixed; z-index: 1000; padding: 12px; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        .btn {
-            background: #f28123;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        #locate-btn { background: #2ecc71; }
-        #logout-btn { background: #e74c3c; }
+        #logout { top: 15px; right: 15px; background: #e74c3c; color: white; }
+        #locate { bottom: 30px; right: 15px; background: #2ecc71; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="ui-controls">
-        <button class="btn" id="logout-btn" onclick="logout()">ESCI</button>
-        <button class="btn" id="locate-btn" onclick="trovami()">DOVE SONO?</button>
-    </div>
-
+    <button id="logout" class="ui-btn" onclick="logout()">ESCI</button>
+    <button id="locate" class="ui-btn" onclick="trovami()">DOVE SONO?</button>
     <div id="map"></div>
 
     <script>
-        // CONFIGURAZIONE FIREBASE (Dalla tua console)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
-            authDomain: "camperservicepoint.firebaseapp.com",
-            projectId: "camperservicepoint",
-            storageBucket: "camperservicepoint.firebasestorage.app",
-            messagingSenderId: "771457519428",
-            appId: "1:771457519428:web:29eb0b67403d01ecb8d111"
-        };
-        firebase.initializeApp(firebaseConfig);
+        // --- CONFIGURAZIONE SUPABASE ---
+        const SUPABASE_URL = 'IL_TUO_URL_DI_SUPABASE';
+        const SUPABASE_KEY = 'LA_TUA_CHIAVE_ANON_SUPABASE';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Controllo Accesso: se non sei loggato, ti rimanda a index.html
-        firebase.auth().onAuthStateChanged((user) => {
-            if (!user) {
+        // --- PROTEZIONE PAGINA ---
+        async function checkAccess() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
                 window.location.href = "index.html";
             }
-        });
+        }
+        checkAccess();
 
-        // Inizializzazione Mappa (Centrata sull'Italia)
+        // --- INIZIALIZZAZIONE MAPPA ---
         var map = L.map('map').setView([41.8719, 12.5674], 6);
-
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
         var gpsMarker, gpsCircle;
 
-        // Funzione GPS
+        // --- FUNZIONE GPS ---
         function trovami() {
             map.locate({setView: true, maxZoom: 16});
         }
 
         function onLocationFound(e) {
-            var radius = e.accuracy / 2;
-
             if (gpsMarker) {
                 map.removeLayer(gpsMarker);
                 map.removeLayer(gpsCircle);
             }
-
-            gpsMarker = L.marker(e.latlng).addTo(map)
-                .bindPopup("Ti trovi entro " + radius.toFixed(0) + " metri da questo punto").openPopup();
-
-            gpsCircle = L.circle(e.latlng, radius).addTo(map);
+            gpsMarker = L.marker(e.latlng).addTo(map).bindPopup("Sei qui!").openPopup();
+            gpsCircle = L.circle(e.latlng, e.accuracy / 2).addTo(map);
         }
 
         map.on('locationfound', onLocationFound);
+        map.on('locationerror', () => alert("Errore: impossibile accedere alla posizione. Attiva il GPS."));
 
-        map.on('locationerror', function(e) {
-            alert("Errore GPS: " + e.message + ". Assicurati di aver dato i permessi al browser.");
-        });
-
-        // Funzione Logout
-        function logout() {
-            firebase.auth().signOut().then(() => {
-                window.location.href = "index.html";
-            });
+        // --- FUNZIONE LOGOUT ---
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = "index.html";
         }
 
-        // Avvia ricerca posizione all'apertura
+        // Trova la posizione all'avvio
         trovami();
-
     </script>
 </body>
 </html>
