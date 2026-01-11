@@ -3,30 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mappa GPS - Camper Service Point</title>
+    <title>Mappa Camper Service</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <style>
-        body { margin: 0; padding: 0; }
+        body { margin: 0; padding: 0; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; }
-        .ui-btn { 
-            position: fixed; z-index: 1000; background: #f28123; 
-            color: white; border: none; padding: 12px; 
-            border-radius: 8px; cursor: pointer; font-weight: bold; 
+        .ui-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn {
+            background: #f28123;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        #logout { top: 15px; right: 15px; }
-        #locate { bottom: 30px; right: 15px; background: #2ecc71; }
+        #locate-btn { background: #2ecc71; }
+        #logout-btn { background: #e74c3c; }
     </style>
 </head>
 <body>
-    <button id="logout" class="ui-btn" onclick="firebase.auth().signOut()">ESCI</button>
-    <button id="locate" class="ui-btn" onclick="findMe()">DOVE SONO?</button>
+
+    <div class="ui-controls">
+        <button class="btn" id="logout-btn" onclick="logout()">ESCI</button>
+        <button class="btn" id="locate-btn" onclick="trovami()">DOVE SONO?</button>
+    </div>
+
     <div id="map"></div>
 
     <script>
+        // CONFIGURAZIONE FIREBASE (Dalla tua console)
         const firebaseConfig = {
             apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
             authDomain: "camperservicepoint.firebaseapp.com",
@@ -37,40 +56,57 @@
         };
         firebase.initializeApp(firebaseConfig);
 
-        // Protezione pagina
+        // Controllo Accesso: se non sei loggato, ti rimanda a index.html
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) window.location.href = "login.html";
+            if (!user) {
+                window.location.href = "index.html";
+            }
         });
 
-        // Inizializza mappa sull'Italia
+        // Inizializzazione Mappa (Centrata sull'Italia)
         var map = L.map('map').setView([41.8719, 12.5674], 6);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        var myMarker, myCircle;
+        var gpsMarker, gpsCircle;
 
-        function findMe() {
+        // Funzione GPS
+        function trovami() {
             map.locate({setView: true, maxZoom: 16});
         }
 
         function onLocationFound(e) {
             var radius = e.accuracy / 2;
 
-            if (myMarker) {
-                map.removeLayer(myMarker);
-                map.removeLayer(myCircle);
+            if (gpsMarker) {
+                map.removeLayer(gpsMarker);
+                map.removeLayer(gpsCircle);
             }
 
-            myMarker = L.marker(e.latlng).addTo(map).bindPopup("Sei qui!").openPopup();
-            myCircle = L.circle(e.latlng, radius).addTo(map);
+            gpsMarker = L.marker(e.latlng).addTo(map)
+                .bindPopup("Ti trovi entro " + radius.toFixed(0) + " metri da questo punto").openPopup();
+
+            gpsCircle = L.circle(e.latlng, radius).addTo(map);
         }
 
         map.on('locationfound', onLocationFound);
-        map.on('locationerror', function(e) { alert("Accesso alla posizione negato."); });
 
-        // Avvia localizzazione automatica all'apertura
-        findMe();
+        map.on('locationerror', function(e) {
+            alert("Errore GPS: " + e.message + ". Assicurati di aver dato i permessi al browser.");
+        });
+
+        // Funzione Logout
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+
+        // Avvia ricerca posizione all'apertura
+        trovami();
+
     </script>
 </body>
 </html>
