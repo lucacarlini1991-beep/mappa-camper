@@ -1,41 +1,42 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Camper</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 300px; }
         input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         button { width: 100%; padding: 10px; background: #f28123; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-        #msg { color: red; font-size: 0.8rem; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2>Area Riservata</h2>
+        <h2>Area Camper</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">ENTRA ORA</button>
-        <div id="msg"></div>
+        <button onclick="login()">ACCEDI</button>
+        <p id="msg" style="color:red; font-size: 12px;"></p>
     </div>
+
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
-            authDomain: "camperservicepoint.firebaseapp.com",
-            projectId: "camperservicepoint",
-            appId: "1:771457519428:web:29eb0b67403d01ecb8d111"
-        };
-        firebase.initializeApp(firebaseConfig);
-        function login() {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('password').value;
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then(() => { window.location.href = "mappa.html"; })
-                .catch((e) => { document.getElementById('msg').innerText = "Errore: " + e.message; });
+        // INSERISCI QUI I TUOI DATI DI SUPABASE
+        const supabaseUrl = 'IL_TUO_URL_PROGETTO'; 
+        const supabaseKey = 'LA_TUA_PUBLISHABLE_KEY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                document.getElementById('msg').innerText = "Errore: " + error.message;
+            } else {
+                window.location.href = "mappa.html";
+            }
         }
     </script>
 </body>
