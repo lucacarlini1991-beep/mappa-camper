@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Camper</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding-top:50px;">
+    <h2>Accesso Mappa</h2>
+    <input type="email" id="email" placeholder="Email" style="padding:10px; margin:5px;"><br>
+    <input type="password" id="password" placeholder="Password" style="padding:10px; margin:5px;"><br>
+    <button onclick="login()" style="padding:10px 20px; background:#f28123; color:white; border:none; border-radius:5px;">ENTRA</button>
+    <p id="err" style="color:red;"></p>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
+            authDomain: "camperservicepoint.firebaseapp.com",
+            projectId: "camperservicepoint",
+            storageBucket: "camperservicepoint.firebasestorage.app",
+            messagingSenderId: "771457519428",
+            appId: "1:771457519428:web:29eb0b67403d01ecb8d111"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(() => { window.location.href = "mappa.html"; })
+                .catch((error) => { document.getElementById('err').innerText = error.message; });
+        }
+    </script>
+</body>
+</html>

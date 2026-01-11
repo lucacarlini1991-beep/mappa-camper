@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mappa GPS - Camper Service Point</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100%; }
+        .ui-btn { 
+            position: fixed; z-index: 1000; background: #f28123; 
+            color: white; border: none; padding: 12px; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #logout { top: 15px; right: 15px; }
+        #locate { bottom: 30px; right: 15px; background: #2ecc71; }
+    </style>
+</head>
+<body>
+    <button id="logout" class="ui-btn" onclick="firebase.auth().signOut()">ESCI</button>
+    <button id="locate" class="ui-btn" onclick="findMe()">DOVE SONO?</button>
+    <div id="map"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDDXqeAOhxG8BsIDkb3tidw-U7hzkqOo",
+            authDomain: "camperservicepoint.firebaseapp.com",
+            projectId: "camperservicepoint",
+            storageBucket: "camperservicepoint.firebasestorage.app",
+            messagingSenderId: "771457519428",
+            appId: "1:771457519428:web:29eb0b67403d01ecb8d111"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Protezione pagina
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) window.location.href = "login.html";
+        });
+
+        // Inizializza mappa sull'Italia
+        var map = L.map('map').setView([41.8719, 12.5674], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var myMarker, myCircle;
+
+        function findMe() {
+            map.locate({setView: true, maxZoom: 16});
+        }
+
+        function onLocationFound(e) {
+            var radius = e.accuracy / 2;
+
+            if (myMarker) {
+                map.removeLayer(myMarker);
+                map.removeLayer(myCircle);
+            }
+
+            myMarker = L.marker(e.latlng).addTo(map).bindPopup("Sei qui!").openPopup();
+            myCircle = L.circle(e.latlng, radius).addTo(map);
+        }
+
+        map.on('locationfound', onLocationFound);
+        map.on('locationerror', function(e) { alert("Accesso alla posizione negato."); });
+
+        // Avvia localizzazione automatica all'apertura
+        findMe();
+    </script>
+</body>
+</html>
